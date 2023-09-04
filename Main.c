@@ -15,6 +15,7 @@ Description : By using this file we can save contacts and do these operations in
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 // Macro definitions
 #define stop_the_program           0
@@ -26,17 +27,16 @@ Description : By using this file we can save contacts and do these operations in
 
 // Global variables.
 const char* filename = "Format_Imenika.txt";
-int counter = 0;
 
 
 // Defining user data type.
 typedef struct
-{
+ {
 	char name[20];
 	char surname[20];
 	int number;
 
-}User;
+ }User;
 
 typedef struct List
  {
@@ -90,34 +90,39 @@ int Stop_the_program()
 }
 
 
-// This function loads users from a .txt file
+// This function loads users from a .txt file in binary format
 void Load_users(const char* filename)
  {
-	 FILE *file;
-	 char line[100];
+	FILE *file;
+	char line[100];
 
-	 file = fopen("Format_Imenika.txt", "r");
+	file = fopen("Format_Imenika.txt", "rb");
 
-	 while (fgets(line, sizeof(line), file))
-	 {
-		 char *name = strtok(line, "|");
-		 char *surname = strtok(NULL, "|");
-		 char *number_str = strtok(NULL, "\n");
+	if(file == NULL)
+	   	{
+	   		printf("\n\t\t\t\t******************************************************************************\n");
+	   	    printf("\t\t\t\t*                   Error opening the file for reading!                       *\n");
+	   		printf("\t\t\t\t******************************************************************************\n\n\n");
+	   		return;
+	   	}
 
-		long number = atol(number_str);
+	User user;
 
-		Adding_users_to_the_list(name, surname, number);
-	 }
+	while((fread(&user, sizeof(User), 1, file) == 1))  //fread ce procitati podatak iy fajla, &user je adresa na koju ce se procitani podatak smestiti, siyeof(user) velicina strukture, 1 koliko se puta cita podatak,
+	{
+		Adding_users_to_the_list(user.name, user.surname, user.number);
 
-	 fclose(file);
+	}
+	fclose(file);
 
-	 printf("\n\t\t\t\t******************************************************************************\n");
- 	 printf("\t\t\t\t*                  You have successfully loaded users                        *\n");
- 	 printf("\t\t\t\t******************************************************************************\n\n\n");
+	printf("\n\t\t\t\t******************************************************************************\n");
+	printf("\t\t\t\t*                  You have successfully loaded users                        *\n");
+ 	printf("\t\t\t\t******************************************************************************\n\n\n");
  }
 
 
- // This function adding users to the array.
+
+ // This function adding users to the list.
 int Adding_users_to_the_list(char *name, char *surname, int number)
  {
 	List *new = (List *)malloc(sizeof(List));
@@ -128,7 +133,6 @@ int Adding_users_to_the_list(char *name, char *surname, int number)
 	        return 0;  // Indicate failure
 	    }
 
-	//List *new;
 	    strcpy(new->date.name, name);
 	    strcpy(new->date.surname, surname);
 	    new->date.number = number;
@@ -158,7 +162,7 @@ int Adding_users_to_the_list(char *name, char *surname, int number)
 
 // This function prints all users to the console
 void View_all_users()
-{
+ {
 	List *current = head;
 	int i = 0;
 
@@ -168,7 +172,6 @@ void View_all_users()
 
  	while(current != NULL)
    	{
-
    		printf("\t\t\t\t%d) Name: %s, Surname: %s, Number: %d\n\n", i + 1, current->date.name, current->date.surname, current->date.number);
 
    		current = current->next;
@@ -176,17 +179,7 @@ void View_all_users()
    		fflush(stdout);
 
    	 }
-
-/*
-   	for(current = head; current->next != NULL; current = current->next)
-   	{
-   		printf("\t\t\t\t%d) Name: %s, Surname: %s, Number: %d\n\n", i + 1, current->date.name, current->date.surname, current->date.number);
-
-   		i++;
-   	}
  }
-*/
-}
 // This function adds a new user
 void Add_a_user()
  {
@@ -225,17 +218,42 @@ void Add_a_user()
  }
 
 
- // This function writes a new user in a txt file
+ // This function writes a new user in a .txt file in binary format
 void Add_new_user_in_txt(const char* filename, const char* name, const char* surname, int number)
  {
+	// https://www.youtube.com/watch?v=ogscYkB_8Ak //
 	FILE *file;
-  	file = fopen(filename, "a+");
-  	fprintf(file, "%s|%s|%d\n", name, surname, number);
+  	file = fopen(filename, "ab+");
 
+  	if(file == NULL)
+  	{
+  		printf("\n\t\t\t\t******************************************************************************\n");
+  	    printf("\t\t\t\t*                   Error opening the file for writing!                     *\n");
+  		printf("\t\t\t\t******************************************************************************\n\n\n");
+  		return;
+  	}
+
+  	User user;
+  	strcpy(user.name, name);
+  	strcpy(user.surname, surname);
+  	user.number = number;
+
+    //https://www.youtube.com/watch?v=P-fWNCF7Wx8
+  	//fwrite(&user, sizeof(User), 1, file);
+
+    size_t users_written = fwrite(&user, sizeof(User), 1, file);
+    if(users_written == 0)
+    {
+    	printf("\n\t\t\t\t******************************************************************************\n");
+    	printf("\t\t\t\t*                   You have not added any users!                     *\n");
+    	printf("\t\t\t\t******************************************************************************\n\n\n");
+    	return;
+    }
   	fclose(file);
  }
 
 
+ // This function remove a user from list.
 void Remove_a_user_from_list()
  {
 	int number;
@@ -263,23 +281,10 @@ void Remove_a_user_from_list()
 	        previous = current;
 	        current = current->next;
 	     }
-/*
-	    //CodeVault-YouTube
-	    for(List *current = head; current->next != NULL; current = current->next)
-	    {
-	    	if (current->date.number == number)
-	        {
-	    		found_index = 1;
-	    		printf("\n\n");
-	    		printf("\t\t\t\tThe selected user was located in the list!\n");
-	    		break;
-	    	}
-	    }
-*/
 
 	    if (found_index)
 	        {
-	            if (previous == NULL)
+	            if (current == NULL)
 	            {
 	                head = current->next;
 	            }
@@ -288,7 +293,7 @@ void Remove_a_user_from_list()
 	                previous->next = current->next;
 	            }
 
-	            free(current); // Oslobodili smo memoriju na mestu gde je obrisan kontakt
+	            free(current);
 
 	            printf("\n\n");
 	            printf("\t\t\t\tUser removed from the array.\n");
@@ -300,7 +305,7 @@ void Remove_a_user_from_list()
  }
 
 
-   // This function will start our program.
+ // This function will start our program.
 void start()
  {
    	int choice;
@@ -347,7 +352,7 @@ void start()
  }
 
 
-// Program starts here.
+ // Program starts here.
 int main()
  {
 	start();
