@@ -10,12 +10,14 @@ Description : By using this file we can save contacts and do these operations in
    4) remove a user from list
 */
 
+
 // Included the headers
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <stddef.h>
+
 
 // Macro definitions
 #define stop_the_program           0
@@ -55,7 +57,7 @@ void Load_users();
 int Adding_users_to_the_list();
 void View_all_users();
 void Add_a_user();
-void Add_new_user_in_txt();
+int Add_new_user_in_txt();
 void Remove_a_user_from_list();
 
 
@@ -86,7 +88,7 @@ int Stop_the_program()
 	printf("\t\t\t\t******************************************************************************\n\n\n");
 	fflush(stdout);
 
-	return 1;
+	return 1; // return error code 1
 }
 
 
@@ -94,21 +96,20 @@ int Stop_the_program()
 void Load_users(const char* filename)
  {
 	FILE *file;
-	char line[100];
 
 	file = fopen("Format_Imenika.txt", "rb");
 
 	if(file == NULL)
 	   	{
 	   		printf("\n\t\t\t\t******************************************************************************\n");
-	   	    printf("\t\t\t\t*                   Error opening the file for reading!                       *\n");
+	   	        printf("\t\t\t\t*                   Error opening the file for reading!                       *\n");
 	   		printf("\t\t\t\t******************************************************************************\n\n\n");
-	   		return;
+
 	   	}
 
 	User user;
 
-	while((fread(&user, sizeof(User), 1, file) == 1))  //fread ce procitati podatak iy fajla, &user je adresa na koju ce se procitani podatak smestiti, siyeof(user) velicina strukture, 1 koliko se puta cita podatak,
+	while((fread(&user, sizeof(User), 1, file) == 1))
 	{
 		Adding_users_to_the_list(user.name, user.surname, user.number);
 
@@ -121,8 +122,7 @@ void Load_users(const char* filename)
  }
 
 
-
- // This function adding users to the list.
+// This function adding users to the list.
 int Adding_users_to_the_list(char *name, char *surname, int number)
  {
 	List *new = (List *)malloc(sizeof(List));
@@ -157,7 +157,7 @@ int Adding_users_to_the_list(char *name, char *surname, int number)
  	    printf("\t\t\t\t*                  User added successfully to the list                       *\n");
  	    printf("\t\t\t\t******************************************************************************\n\n\n");
 
- 	   return 1;  // Indicate success
+ 	    return 1;  // Indicate success
  }
 
 // This function prints all users to the console
@@ -218,19 +218,18 @@ void Add_a_user()
  }
 
 
- // This function writes a new user in a .txt file in binary format
-void Add_new_user_in_txt(const char* filename, const char* name, const char* surname, int number)
+// This function writes a new user in a .txt file in binary format
+int Add_new_user_in_txt(const char* filename, const char* name, const char* surname, int number)
  {
-	// https://www.youtube.com/watch?v=ogscYkB_8Ak //
 	FILE *file;
   	file = fopen(filename, "ab+");
 
   	if(file == NULL)
   	{
   		printf("\n\t\t\t\t******************************************************************************\n");
-  	    printf("\t\t\t\t*                   Error opening the file for writing!                     *\n");
+  	        printf("\t\t\t\t*                   Error opening the file for writing!                     *\n");
   		printf("\t\t\t\t******************************************************************************\n\n\n");
-  		return;
+  		return 2; // return error code 2
   	}
 
   	User user;
@@ -238,16 +237,13 @@ void Add_new_user_in_txt(const char* filename, const char* name, const char* sur
   	strcpy(user.surname, surname);
   	user.number = number;
 
-    //https://www.youtube.com/watch?v=P-fWNCF7Wx8
-  	//fwrite(&user, sizeof(User), 1, file);
-
     size_t users_written = fwrite(&user, sizeof(User), 1, file);
     if(users_written == 0)
     {
     	printf("\n\t\t\t\t******************************************************************************\n");
     	printf("\t\t\t\t*                   You have not added any users!                     *\n");
     	printf("\t\t\t\t******************************************************************************\n\n\n");
-    	return;
+    	return 3; // return error code 3
     }
   	fclose(file);
  }
@@ -271,7 +267,7 @@ void Remove_a_user_from_list()
 
 	    while (current != NULL)
 	    {
-	        if (current->date.number == number)
+	    	if (current->date.number == number)
 	        {
 	            found_index = 1;
 	            printf("\n\n");
@@ -280,35 +276,35 @@ void Remove_a_user_from_list()
 	        }
 	        previous = current;
 	        current = current->next;
-	     }
+	    }
 
 	    if (found_index)
+	    {
+	    	if (current == NULL)
 	        {
-	            if (current == NULL)
-	            {
-	                head = current->next;
-	            }
-	            else
-	            {
-	                previous->next = current->next;
-	            }
-
-	            free(current);
-
-	            printf("\n\n");
-	            printf("\t\t\t\tUser removed from the array.\n");
+	    		head = current->next;
 	        }
-	        else
+	    	else
 	        {
-	            printf("\t\t\t\tUser was not found in the array.\n");
+	    		previous->next = current->next;
 	        }
- }
+
+	    	free(current);
+
+	    	printf("\n\n");
+	        printf("\t\t\t\tUser removed from the array.\n");
+	    }
+	    else
+	    {
+	    	printf("\t\t\t\tUser was not found in the array.\n");
+	    }
+  }
 
 
  // This function will start our program.
 void start()
  {
-   	int choice;
+	int choice;
    	while(1)
    	{
    		Print_menu();
@@ -333,14 +329,14 @@ void start()
    			{
    				Add_a_user();
    			}
-            break;
+                        break;
 
    			case view_all_users:
    			{
    				View_all_users();
 
    			}
-   		    break;
+   		        break;
 
    			case remove_a_user_from_list:
    			{
