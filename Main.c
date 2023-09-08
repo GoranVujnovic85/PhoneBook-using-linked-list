@@ -47,6 +47,7 @@ typedef struct List
 
  }List;
 
+ // Pointer to the first element of the list (global variable).
 List *head = NULL;
 
 
@@ -252,53 +253,80 @@ int Add_new_user_in_txt(const char* filename, const char* name, const char* surn
  // This function remove a user from list.
 void Remove_a_user_from_list()
  {
+	/* Initialization of pointer "current" to the beginning of list */
+	List *current = head;
+
+	/* keeping track of the previous node as you iterate through the linked list */
+	List *previous = NULL;
+
+	/* Tracks the user's position in the list that is currently being checked */
+	int i = 1;
+
+        /* Variable declaration through which we check the phone number */
 	int number;
-	    printf("\n\t\t\t\t******************************************************************************\n");
-	    printf("\t\t\t\t*                          Pay attention!                                    *\n");
-	    printf("\t\t\t\t*               You will delete the user from the List                       *\n");
-	    printf("\t\t\t\t******************************************************************************\n\n\n");
-	    printf("\t\t\t\tEnter Phone number of the user you want to remove from phone book: ");
-	    fflush(stdout);
-	    scanf("%d", &number);
 
-	    List *current = head;
-	    List *previous = NULL;
-	    int found_index = 0;
+        /* Checking if the list is empty */
+	if (head == NULL)
+	{
+		printf("\t\t\t\tThe list is empty!\n");
+		return;
+	}
 
-	    while (current != NULL)
-	    {
-	    	if (current->date.number == number)
-	        {
-	            found_index = 1;
-	            printf("\n\n");
-	            printf("\t\t\t\tThe selected user was located in the list!\n");
-	            break;
-	        }
+	printf("\n\t\t\t\t******************************************************************************\n");
+	printf("\t\t\t\t*                          Pay attention!                                    *\n");
+	printf("\t\t\t\t*               You will delete the user from the List                       *\n");
+	printf("\t\t\t\t******************************************************************************\n\n\n");
+	printf("\t\t\t\tEnter Phone number of the user you want to remove from phone book: ");
+	fflush(stdout);
+	scanf("%d", &number);
+
+	/* Check if the first element is the one requested */
+	if (current->date.number == number)
+	{
+		printf("\n\n");
+		printf("\t\t\t\tThe user is 1st in the list\n");
+
+	    /* Update the "head" pointer to the second node in the list */
+	    head = current->next;
+
+	    /* Freeing the memory of the first node */
+	    free(current);
+
+	    printf("\n\n");
+	    printf("\t\t\t\tUser removed from the list.\n");
+	    return;
+	}
+
+	/* Iterating through the linked list to find a user with a specific phone number to remove from the list */
+	while (current != NULL)
+	{
+		/* Checks if the phone number of the current user located in the node pointed to by "current" */
+		if (current->date.number == number)
+		{
+			printf("\n\n");
+			printf("\t\t\t\tWe delete user no. %d in list\n", i);
+
+		/* In this way, the current node is deleted, it is bypassed and the nodes are reconnected */
+	        previous->next = current->next;
+
+	        /* Freeing the memory of the current node */
+	        free(current);
+
+	        printf("\n\n");
+	        printf("\t\t\t\tUser removed from the list.\n");
+	        return;
+		}
+
+                /* It ensures that the node being removed is properly removed from the list and the list remains connected without interruption */
 	        previous = current;
 	        current = current->next;
-	    }
 
-	    if (found_index)
-	    {
-	    	if (current == NULL)
-	        {
-	    		head = current->next;
-	        }
-	    	else
-	        {
-	    		previous->next = current->next;
-	        }
 
-	    	free(current);
-
-	    	printf("\n\n");
-	        printf("\t\t\t\tUser removed from the array.\n");
-	    }
-	    else
-	    {
-	    	printf("\t\t\t\tUser was not found in the array.\n");
-	    }
-  }
+	        /* Increments the variable by 1 each time it is executed */
+	        i++;
+	}
+	printf("\t\t\t\tUser was not found in the list.\n");
+ }
 
 
  // This function will start our program.
